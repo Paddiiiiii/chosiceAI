@@ -47,9 +47,30 @@ export const getCorrectionContext = (docId, { line = 0, original = '', corrected
   api.get('/review/corrections/context', { params: { doc_id: docId, line, original, corrected } })
 
 // ─────────── 检索对比 ───────────
-export const searchComparison = (query, filters = null) =>
-  api.post('/search/comparison', { query, filters })
+export const searchComparison = (query, filters = null, retrieval = null) =>
+  api.post('/search/comparison', { query, filters, retrieval })
 export const refreshCache = () => api.post('/search/refresh-cache')
+
+// ─────────── 图谱 ───────────
+export const rebuildGraphApi = (useLlm = false) =>
+  api.post(`/graph/rebuild?use_llm=${useLlm}`, null, { timeout: 600000 })
+export const getGraphStats = () => api.get('/graph/stats')
+export const getRoleTasks = (role, phase = null) =>
+  api.get('/graph/role_tasks', { params: { role, phase } })
+export const getTaskRoles = (chunkId = null, taskName = null) =>
+  api.get('/graph/task_roles', { params: { chunk_id: chunkId, task_name: taskName } })
+export const getTaskDecompose = (chunkId) =>
+  api.get('/graph/task_decompose', { params: { chunk_id: chunkId } })
+export const getTaskPrerequisites = (chunkId) =>
+  api.get('/graph/task_prerequisites', { params: { chunk_id: chunkId } })
+export const getTaskProducts = (chunkId = null, role = null, phase = null) =>
+  api.get('/graph/task_products', { params: { chunk_id: chunkId, role, phase } })
+export const getTaskDetail = (chunkId) =>
+  api.get('/graph/task_detail', { params: { chunk_id: chunkId } })
+
+// ─────────── 任务解析 ───────────
+export const resolveQuery = (query, topK = 3) =>
+  api.post('/resolve', { query, top_k: topK })
 
 // ─────────── 同义词 ───────────
 export const listSynonyms = () => api.get('/synonyms')

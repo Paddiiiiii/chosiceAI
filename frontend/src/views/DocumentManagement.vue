@@ -4,10 +4,16 @@
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>文档管理</span>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center">
             <el-upload :show-file-list="false" :before-upload="handleUpload" accept=".txt">
               <el-button type="primary" size="small"><el-icon><Upload /></el-icon> 上传文本</el-button>
             </el-upload>
+            <el-button type="warning" size="small" @click="rebuildGraph(false)" :loading="graphBuilding">
+              <el-icon><Share /></el-icon> 构建流程图谱
+            </el-button>
+            <el-button type="warning" size="small" plain @click="rebuildGraph(true)" :loading="graphBuilding">
+              <el-icon><MagicStick /></el-icon> 图谱 + LLM 补全
+            </el-button>
           </div>
         </div>
       </template>
@@ -57,10 +63,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   listDocuments, uploadDocument, processDocument,
-  reprocessDocument, deleteDocument, buildIndexes,
+  reprocessDocument, deleteDocument, buildIndexes, rebuildGraphApi,
 } from '../api'
 
 const documents = ref([])
+const graphBuilding = ref(false)
 let timer = null
 
 onMounted(() => { fetchDocs(); startPolling() })
@@ -101,6 +108,23 @@ async function process(row) {
 async function buildIdx() {
   await buildIndexes()
   ElMessage.info('索引构建已启动')
+}
+
+async function rebuildGraph(useLlm) {
+  graphBuilding.value = true
+  try {
+    const { data } = await rebuildGraphApi(useLlm)
+    if (data.status === 'success') {
+      const t = data.tasks || 0, tg = data.task_groups || 0, r = data.roles || 0
+      ElMessage.success(`图谱构建完成：Task ${t} + TaskGroup ${tg}，角色 ${r}，关系 ${(data.has_subtask||0)+(data.next_step||0)+(data.involves||0)} 条`)
+    } else {
+      ElMessage.error('图谱构建失败: ' + (data.message || '未知错误'))
+    }
+  } catch (e) {
+    ElMessage.error('图谱构建请求失败: ' + e.message)
+  } finally {
+    graphBuilding.value = false
+  }
 }
 
 async function doDelete(docId) {

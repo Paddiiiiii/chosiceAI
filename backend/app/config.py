@@ -8,10 +8,15 @@ class Settings(BaseSettings):
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
     DEEPSEEK_MODEL: str = "deepseek-chat"
 
-    # Embedding（Ollama 或 SiliconFlow）
+    # Embedding（主通道 Ollama，备用 SiliconFlow）
     EMBEDDING_URL: str = "http://192.168.1.200:11434/api/embeddings"  # Ollama embedding API
     EMBEDDING_MODEL: str = "bge-large"
     EMBEDDING_DIM: int = 1024
+
+    # SiliconFlow 备用 Embedding（主通道失败时使用）
+    SILICONFLOW_API_KEY: str = "sk-xtpojqrgbqomvlyvtlvpmwbjfpwynbbrqsekxvotxkoxqerw"
+    SILICONFLOW_EMBEDDING_URL: str = "https://api.siliconflow.cn/v1/embeddings"
+    SILICONFLOW_EMBEDDING_MODEL: str = "BAAI/bge-large-zh-v1.5"  # 1024 维，与主通道兼容
 
     # Milvus（支持 Lite 模式和 Standalone 模式）
     MILVUS_URI: str = "./data/milvus.db"  # Lite模式：本地文件；Standalone模式：http://localhost:19530
@@ -20,6 +25,11 @@ class Settings(BaseSettings):
     # Elasticsearch
     ES_URL: str = "http://localhost:9200"
     ES_INDEX: str = "military_manual"
+
+    # Neo4j
+    NEO4J_URI: str = "bolt://192.168.1.190:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "neo4j@openspg"
 
     # Data directory
     DATA_DIR: str = "./data"

@@ -9,9 +9,23 @@
       </el-input>
     </el-card>
 
-    <!-- 三路结果对比 -->
+    <!-- 检索通道开关 -->
+    <el-card shadow="never" style="margin-bottom: 12px" v-if="result">
+      <el-form inline size="small">
+        <el-form-item label="检索通道">
+          <el-checkbox v-model="opts.use_vector">向量</el-checkbox>
+          <el-checkbox v-model="opts.use_bm25">BM25</el-checkbox>
+          <el-checkbox v-model="opts.use_graph">图谱</el-checkbox>
+        </el-form-item>
+        <el-form-item>
+          <el-button size="small" @click="doSearch" :loading="loading">重新检索</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 四路结果对比 -->
     <el-row :gutter="16" v-if="result">
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="never">
           <template #header>
             <span>🔷 向量检索 ({{ result.vector_results.length }})</span>
@@ -19,7 +33,7 @@
           <ResultList :items="result.vector_results" />
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="never">
           <template #header>
             <span>🔶 BM25 检索 ({{ result.bm25_results.length }})</span>
@@ -27,7 +41,15 @@
           <ResultList :items="result.bm25_results" />
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
+        <el-card shadow="never">
+          <template #header>
+            <span>🟣 图谱检索 ({{ result.graph_results.length }})</span>
+          </template>
+          <ResultList :items="result.graph_results" />
+        </el-card>
+      </el-col>
+      <el-col :span="6">
         <el-card shadow="never">
           <template #header>
             <span>🟢 RRF 融合 ({{ result.rrf_results.length }})</span>
@@ -46,12 +68,18 @@ import { searchComparison } from '../api'
 const query = ref('')
 const loading = ref(false)
 const result = ref(null)
+const opts = ref({
+  use_vector: true,
+  use_bm25: true,
+  use_graph: true,
+})
 
 const doSearch = async () => {
   if (!query.value.trim() || loading.value) return
   loading.value = true
   try {
-    const { data } = await searchComparison(query.value)
+    const retrieval = { ...opts.value }
+    const { data } = await searchComparison(query.value, null, retrieval)
     result.value = data
   } catch (e) {
     ElMessage.error('检索失败: ' + e.message)

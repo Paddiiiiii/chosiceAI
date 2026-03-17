@@ -3,7 +3,7 @@ import re
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
-from app.models.schemas import ChatRequest, ChatResponse
+from app.models.schemas import ChatRequest, ChatResponse, RetrievalOptions
 from app.services.intent import intent_service
 from app.services.search import search_service
 from app.services.router_judge import router_judge_service
@@ -88,10 +88,14 @@ async def chat(request: ChatRequest):
     # Step 1: 意图识别
     search_query = await intent_service.extract_search_query(clean_input)
 
-    # Step 2+3: 双路检索 + RRF 融合
+    # Step 2+3: 三路可选检索 + RRF 融合
+    opts = request.retrieval or RetrievalOptions()
     search_results = await search_service.hybrid_search(
         query=search_query,
         filters=request.context,
+        use_vector=opts.use_vector,
+        use_bm25=opts.use_bm25,
+        use_graph=opts.use_graph,
     )
 
     if not search_results:

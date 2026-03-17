@@ -4,9 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
-from app.routers import chat, documents, chunks, roles, review, search, synonyms, structure, level_patterns
+from app.routers import chat, documents, chunks, roles, review, search, synonyms, structure, level_patterns, graph, resolve
 from app.services.search import search_service
 from app.services.index_builder import index_builder
+from app.services.graph_search import graph_search_service
+from app.services.graph_builder import graph_builder
 
 
 @asynccontextmanager
@@ -23,6 +25,8 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down...")
     await search_service.close()
     await index_builder.close()
+    await graph_search_service.close()
+    await graph_builder.close()
 
 
 app = FastAPI(
@@ -51,6 +55,8 @@ app.include_router(search.router)
 app.include_router(synonyms.router)
 app.include_router(structure.router)
 app.include_router(level_patterns.router)
+app.include_router(graph.router)
+app.include_router(resolve.router)
 
 
 @app.get("/")

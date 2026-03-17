@@ -116,11 +116,20 @@ class TreeNode(BaseModel):
 TreeNode.model_rebuild()
 
 
+# ──────────────────── 检索选项 ────────────────────
+
+class RetrievalOptions(BaseModel):
+    use_vector: bool = True
+    use_bm25: bool = True
+    use_graph: bool = True
+
+
 # ──────────────────── Chat / 路由 ────────────────────
 
 class ChatRequest(BaseModel):
     input: str
     context: Optional[dict] = None  # {"phase": "战斗准备", "battle_type": "进攻战斗"}
+    retrieval: Optional[RetrievalOptions] = None
 
 
 class RoutingBasis(BaseModel):
@@ -151,16 +160,18 @@ class SearchResultItem(BaseModel):
     title_chain: str = ""
     text: str = ""
     score: float = 0.0
-    source: str = ""  # vector, bm25, rrf
+    source: str = ""  # vector, bm25, graph, rrf
 
 
 class SearchComparisonRequest(BaseModel):
     query: str
     filters: Optional[dict] = None
+    retrieval: Optional[RetrievalOptions] = None
 
 
 class SearchComparisonResponse(BaseModel):
     query: str
     vector_results: List[SearchResultItem] = Field(default_factory=list)
     bm25_results: List[SearchResultItem] = Field(default_factory=list)
+    graph_results: List[SearchResultItem] = Field(default_factory=list)
     rrf_results: List[SearchResultItem] = Field(default_factory=list)
