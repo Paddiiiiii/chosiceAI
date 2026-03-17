@@ -1,0 +1,44 @@
+[
+  {
+    "level": 1,
+    "pattern": "^第[一二三四五六七八九十百]+章\\s*(.+)",
+    "description": "第X章",
+    "example": "第二章 合同战术基本理论"
+  },
+  {
+    "level": 2,
+    "pattern": "^第[一二三四五六七八九十百]+节\\s*(.+)",
+    "description": "第X节",
+    "example": "第一节 进攻战斗"
+  },
+  {
+    "level": 3,
+    "pattern": "^[一二三四五六七八九十]+、(.+)",
+    "description": "X、",
+    "example": "一、战斗准备"
+  },
+  {
+    "level": 4,
+    "pattern": "^（[一二三四五六七八九十]+）(.+)",
+    "description": "（X）",
+    "example": "（一）传达任务"
+  },
+  {
+    "level": 5,
+    "pattern": "^\\d+[\\.．、](.+)",
+    "description": "N.",
+    "example": "1.下达预先号令"
+  },
+  {
+    "level": 6,
+    "pattern": "^（(\\d+)）(.+)",
+    "description": "（N）",
+    "example": "（1）领会上级意图"
+  },
+  {
+    "level": 7,
+    "pattern": "^[①②③④⑤⑥⑦⑧⑨⑩](.+)",
+    "description": "①②③",
+    "example": "①本级任务"
+  }
+]

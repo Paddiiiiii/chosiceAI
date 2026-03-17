@@ -1,0 +1,926 @@
+[
+  {
+    "line": 1,
+    "original": "传达任务，计划安排工作传达任务，计划安排工作指挥员",
+    "corrected": "传达任务，计划安排工作\n传达任务，计划安排工作是指挥员",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 1,
+    "original": "应及时可首先",
+    "corrected": "应及时或首先",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 23,
+    "original": "所处地位与作用",
+    "corrected": "中所处地位与作用",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 23,
+    "original": "（作战目的、基本战法等，赋予",
+    "corrected": "（作战目的、基本战法等）、赋予",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 47,
+    "original": "制定出的",
+    "corrected": "制定出",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 47,
+    "original": "友邻敌情通报",
+    "corrected": "友邻敌情通报",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 47,
+    "original": "和重点",
+    "corrected": "和重点",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 69,
+    "original": "分析判断情况是作战的全过程",
+    "corrected": "分析判断情况贯穿作战的全过程",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 69,
+    "original": "核实印证分类梳理",
+    "corrected": "核实印证、分类梳理",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 69,
+    "original": "无月的情况",
+    "corrected": "无用的情况",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 85,
+    "original": "战斗构想的进一步细化",
+    "corrected": "是战斗构想的进一步细化",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 85,
+    "original": "指挥员可根据实际需要，应当围绕重点内容和关键环节",
+    "corrected": "指挥员可根据实际需要，围绕重点内容和关键环节",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "定下战斗决心，是指择员",
+    "corrected": "定下战斗决心，是指挥员",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "是指择员组织战斗的主要工作",
+    "corrected": "是指挥员组织战斗的主要工作",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "指择员受领任务后",
+    "corrected": "指挥员受领任务后",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "指择员定下决心时",
+    "corrected": "指挥员定下决心时",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "指择员定下进攻战斗决心",
+    "corrected": "指挥员定下进攻战斗决心",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "由指择员亲自主持",
+    "corrected": "由指挥员亲自主持",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "确保指择员作出的决断",
+    "corrected": "确保指挥员作出的决断",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "也可采取指择员个人决断",
+    "corrected": "也可采取指挥员个人决断",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "通常首先由指择员听取",
+    "corrected": "通常首先由指挥员听取",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "最后由指择员根据",
+    "corrected": "最后由指挥员根据",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "指择员应向参谋长明确",
+    "corrected": "指挥员应向参谋长明确",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 99,
+    "original": "通常由指择员主持会议",
+    "corrected": "通常由指挥员主持会议",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 111,
+    "original": "方以",
+    "corrected": "方式",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 139,
+    "original": "描绘协调控制蓝图",
+    "corrected": "描绘协调控制蓝图",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "政治工作计划，是组织实施战斗过程中政治工作的依据。由旅政治工作部根据上级政治工作指示、计划，旅指挥员决心和政治工作指示，按照各业务部门的职责、任务进行拟制。包括组织工作计划、人力资源工作计划、战时宣传动员计划、战时保卫工作计划、纪检监察计划。",
+    "corrected": "政治工作计划，是组织实施战斗过程中政治工作的依据。由旅政治工作部根据上级政治工作指示、计划，旅指挥员决心和政治工作指示，按照各业务部门的职责、任务进行拟制。包括组织工作计划、人力资源工作计划、战时宣传动员计划、战时保卫工作计划、纪检监察计划。",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "3.保障计划",
+    "corrected": "3.保障计划",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "保障计划，是组织实施进攻战斗保障的计划。通常包括战斗保障计划、后勤保障计划和装备保障计划。",
+    "corrected": "保障计划，是组织实施进攻战斗保障的计划。通常包括战斗保障计划、后勤保障计划和装备保障计划。",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "战斗保障计划，是参谋长根据上级战斗保障指示、计划，指挥员决心、战斗总体计划、协同计划，由作训部门牵头，其他各业务部门参加共同拟制的战斗保障行动方案，是组织与实施部队（分队）作战保障的重要依据。主要包括侦察计划、警戒计划、通信保障计划、电子防护计划、计算机网络防护计划、工程保障计划、伪装保障计划、防化保障计划、电磁频谱管理计划、测绘保障计划、气象水文保障计划、战场管理计划等。内容通常包括：保障力量的编组、配置和任务；保障的重点和方式、方法；保障关系；完成准备的时限等。",
+    "corrected": "战斗保障计划，是参谋长根据上级战斗保障指示、计划，指挥员决心、战斗总体计划、协同计划，由作训部门牵头，其他各业务部门参加共同拟制的战斗保障行动方案，是组织与实施部队（分队）作战保障的重要依据。主要包括侦察计划、警戒计划、通信保障计划、电子防护计划、计算机网络防护计划、工程保障计划、伪装保障计划、防化保障计划、电磁频谱管理计划、测绘保障计划、气象水文保障计划、战场管理计划等。内容通常包括：保障力量的编组、配置和任务；保障的重点和方式、方法；保障关系；完成准备的时限等。",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "后勤保障计划，是筹划和实施后勤保障的综合性计划，是后方指挥员和后方指挥机关组织实施后勤保障的基本依据之一。通常由后方指挥所相关部门根据战斗计划和保障需求预计分别拟制，后方指挥组汇总，报后方指挥员审批执行，抄送本级指挥控制中心并报上级后方保障机关备考。后勤保障计划的主要内容包括：后勤保障力量部署，保障方式；现金储备限额、经费领供渠道及方法；物资储备标准和消耗限额，各战斗阶段物资补充的数量、时机和方式；伤病员救治与后送，卫生防疫与防护措施；运输任务区分，承运单位和运输方式，前运、后送道路的使用区分与维护；后勤防卫区域的划分，防卫力量部署及主要防卫措施；后勤指挥机构和指挥信息系统的建立等。",
+    "corrected": "后勤保障计划，是筹划和实施后勤保障的综合性计划，是后方指挥员和后方指挥机关组织实施后勤保障的基本依据之一。通常由后方指挥所相关部门根据战斗计划和保障需求预计分别拟制，后方指挥组汇总，报后方指挥员审批执行，抄送本级指挥控制中心并报上级后方保障机关备考。后勤保障计划的主要内容包括：后勤保障力量部署，保障方式；现金储备限额、经费领供渠道及方法；物资储备标准和消耗限额，各战斗阶段物资补充的数量、时机和方式；伤病员救治与后送，卫生防疫与防护措施；运输任务区分，承运单位和运输方式，前运、后送道路的使用区分与维护；后勤防卫区域的划分，防卫力量部署及主要防卫措施；后勤指挥机构和指挥信息系统的建立等。",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "装备保障计划，是筹划和实施装备保障的综合性计划，是后方指挥员和后方指挥机关组织实施装备保障的基本依据之一。通常由保障部相关部门根据战斗计划和保障需求预计分别拟制，战勤部门汇总，报后方指挥员审批执行，抄送本级指挥控制中心并报上级后装保障机关备考。装备保障计划的主要内容包括：装备保障力量部署；保障方式；装备战损率预计和抢救、抢修、后送及保养措施；弹药和器材的消耗限额；地方支前保障力量的使用；装备保障协同、通信联络、防卫的有关规定；完成准备的时限等。",
+    "corrected": "装备保障计划，是筹划和实施装备保障的综合性计划，是后方指挥员和后方指挥机关组织实施装备保障的基本依据之一。通常由保障部相关部门根据战斗计划和保障需求预计分别拟制，战勤部门汇总，报后方指挥员审批执行，抄送本级指挥控制中心并报上级后装保障机关备考。装备保障计划的主要内容包括：装备保障力量部署；保障方式；装备战损率预计和抢救、抢修、后送及保养措施；弹药和器材的消耗限额；地方支前保障力量的使用；装备保障协同、通信联络、防卫的有关规定；完成准备的时限等。",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 161,
+    "original": "（九）组织战斗协同",
+    "corrected": "（九）组织战斗协同",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 175,
+    "original": "以形成整体合力为目的。整体筹划，周密组织；要精确计算",
+    "corrected": "以形成整体合力为目的，整体筹划，周密组织；要精确计算",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 175,
+    "original": "准确确定战斗协同的任务、目的、时间和空间，",
+    "corrected": "准确确定战斗协同的任务、目的、时间和空间，",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 175,
+    "original": "保障协同的手段和措施等事项。",
+    "corrected": "保障协同的手段和措施等事项。",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "的",
+    "corrected": "地",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "这",
+    "corrected": "这是",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "迁回",
+    "corrected": "迂回",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "合进攻",
+    "corrected": "合同进攻",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "的",
+    "corrected": "地",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 183,
+    "original": "电D的海华盛的国任设公子防御",
+    "corrected": "电台的开设与防御",
+    "type": "garbled",
+    "status": "pending"
+  },
+  {
+    "line": 197,
+    "original": "管网奇联回向控",
+    "corrected": "管控",
+    "type": "garbled",
+    "status": "pending"
+  },
+  {
+    "line": 197,
+    "original": "统一计\n划、周密组织火力。",
+    "corrected": "统一计划、周密组织火力。",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 225,
+    "original": "对空全",
+    "corrected": "对空安全",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 247,
+    "original": "全有",
+    "corrected": "安全",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 247,
+    "original": "是对对空火力目的",
+    "corrected": "是对对空火力目的",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 247,
+    "original": "指挥员对空火力决心",
+    "corrected": "是指挥员对空火力决心",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 265,
+    "original": "全、",
+    "corrected": "安全、",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 265,
+    "original": "信息全，",
+    "corrected": "信息安全，",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 265,
+    "original": "保障重要内容。",
+    "corrected": "保障的重要内容。",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 265,
+    "original": "建立全、",
+    "corrected": "建立安全、",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 289,
+    "original": "可操作",
+    "corrected": "可操作性",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 289,
+    "original": "修定",
+    "corrected": "修订",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 289,
+    "original": "预演呈现，组织",
+    "corrected": "预演呈现，是组织",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 289,
+    "original": "进行战斗准备指挥员",
+    "corrected": "进行战斗准备。指挥员",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 301,
+    "original": "联动精打破体",
+    "corrected": "联动精打破体",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 321,
+    "original": "、要",
+    "corrected": "要",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 321,
+    "original": "申购呼应",
+    "corrected": "申请呼应",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "臂长",
+    "corrected": "臂长",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "退却",
+    "corrected": "退却",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "层层攻坚",
+    "corrected": "层层攻坚",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "软肋",
+    "corrected": "软肋",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "（分队）",
+    "corrected": "（分队）",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "攻、抗",
+    "corrected": "攻、抗",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "阻抗割歼",
+    "corrected": "阻抗割歼",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "攻歼夺要",
+    "corrected": "攻歼夺要",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "一在",
+    "corrected": "一在",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "二在",
+    "corrected": "二在",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "阻突",
+    "corrected": "阻突",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 337,
+    "original": "抗反",
+    "corrected": "抗反",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 351,
+    "original": "三在",
+    "corrected": "三、在",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 351,
+    "original": "快速夺势、",
+    "corrected": "快速夺势、",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 351,
+    "original": "一年口间不生牛",
+    "corrected": "一俟空间态势生成",
+    "type": "garbled",
+    "status": "pending"
+  },
+  {
+    "line": 351,
+    "original": "迁回",
+    "corrected": "迂回",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 351,
+    "original": "区分。",
+    "corrected": "区分，",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 369,
+    "original": "攻抗结合",
+    "corrected": "攻防结合",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 369,
+    "original": "破敌阻滞、诱逼、",
+    "corrected": "破敌阻滞、诱逼、",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 369,
+    "original": "先制反制、",
+    "corrected": "先制反制、",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 385,
+    "original": "利条件",
+    "corrected": "有利条件",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 411,
+    "original": "利条件",
+    "corrected": "有利条件",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 411,
+    "original": "情况判断",
+    "corrected": "判断情况",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 411,
+    "original": "1.形成战斗构想参照阵地防御战斗教材2.",
+    "corrected": "1.形成战斗构想。参照阵地防御战斗教材。2.",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 431,
+    "original": "营队式部署",
+    "corrected": "群队式部署",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 431,
+    "original": "前沿防守营",
+    "corrected": "前沿防守群",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 431,
+    "original": "纵深防守营",
+    "corrected": "纵深防守群",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 431,
+    "original": "作战支援营",
+    "corrected": "作战支援群",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 431,
+    "original": "勤务保障营",
+    "corrected": "勤务保障群",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 451,
+    "original": "既的",
+    "corrected": "既定的",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 473,
+    "original": "自已",
+    "corrected": "自己",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 473,
+    "original": "迁回",
+    "corrected": "迂回",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 473,
+    "original": "迁回",
+    "corrected": "迂回",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 498,
+    "original": "对防御战斗样式不断拓展，",
+    "corrected": "以及对防御战斗样式不断拓展，",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 523,
+    "original": "计划非工作",
+    "corrected": "计划安排工作",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 523,
+    "original": "传送",
+    "corrected": "传达",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 535,
+    "original": "件域",
+    "corrected": "区域",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 535,
+    "original": "《敌情分析报告筹划决策要素牵头",
+    "corrected": "《敌情分析报告》；筹划决策要素牵头",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 535,
+    "original": "《我情分析报告》",
+    "corrected": "《我情分析报告》；",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 543,
+    "original": "理解认识深化分析",
+    "corrected": "理解认识、深化分析",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 543,
+    "original": "领）域",
+    "corrected": "（领）域",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 551,
+    "original": "810",
+    "corrected": "8-10",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 559,
+    "original": "23套",
+    "corrected": "2-3套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 559,
+    "original": "性质特点",
+    "corrected": "性格特点",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 567,
+    "original": "23套",
+    "corrected": "2-3套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 567,
+    "original": "12套",
+    "corrected": "1-2套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 571,
+    "original": "作战会",
+    "corrected": "作战会议",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 571,
+    "original": "中线",
+    "corrected": "中",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 571,
+    "original": "作业条件",
+    "corrected": "作业方式",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 581,
+    "original": "工化",
+    "corrected": "工化",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 581,
+    "original": "后装保障",
+    "corrected": "后装保障",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 589,
+    "original": "得出结论",
+    "corrected": "意图、分析判断情况",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 589,
+    "original": "判断三情、",
+    "corrected": "判断三情、",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 589,
+    "original": "领会上级意图。",
+    "corrected": "领会上级意图。",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 601,
+    "original": "件域",
+    "corrected": "区域",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 601,
+    "original": "《敌情分析报告筹划决策要素牵头",
+    "corrected": "《敌情分析报告》；筹划决策要素牵头",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 609,
+    "original": "23套",
+    "corrected": "2-3套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 617,
+    "original": "性质特点",
+    "corrected": "性格特点",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 617,
+    "original": "23套",
+    "corrected": "2-3套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 617,
+    "original": "12套",
+    "corrected": "1-2套",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 621,
+    "original": "作战会",
+    "corrected": "作战会议",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 621,
+    "original": "网上会议系统",
+    "corrected": "网上会议系统",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 625,
+    "original": "告之",
+    "corrected": "告知",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 635,
+    "original": "包括战斗可纳入",
+    "corrected": "包括战斗保障可纳入",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 635,
+    "original": "修定",
+    "corrected": "修订",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 643,
+    "original": "判、定、处",
+    "corrected": "判断、处置",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 643,
+    "original": "精确指挥基于行动",
+    "corrected": "精确指挥、基于行动",
+    "type": "missing_char",
+    "status": "pending"
+  },
+  {
+    "line": 643,
+    "original": "重要打击",
+    "corrected": "重点打击",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 663,
+    "original": "可趁之机",
+    "corrected": "可乘之机",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 663,
+    "original": "受控制对象",
+    "corrected": "受控对象",
+    "type": "extra_char",
+    "status": "pending"
+  },
+  {
+    "line": 671,
+    "original": "同一",
+    "corrected": "统一",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 671,
+    "original": "剧烈",
+    "corrected": "激烈",
+    "type": "wrong_char",
+    "status": "pending"
+  },
+  {
+    "line": 671,
+    "original": "简约",
+    "corrected": "简化",
+    "type": "wrong_char",
+    "status": "pending"
+  }
+]

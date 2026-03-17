@@ -1,0 +1,91 @@
+{
+  "version": "1.0",
+  "source_files": [],
+  "roles": [
+    {
+      "role_id": "R01",
+      "name": "指挥员",
+      "mention_count": 88
+    },
+    {
+      "role_id": "R02",
+      "name": "参谋长",
+      "mention_count": 22
+    },
+    {
+      "role_id": "R03",
+      "name": "筹划决策要素",
+      "mention_count": 21
+    },
+    {
+      "role_id": "R04",
+      "name": "侦察情报要素",
+      "mention_count": 11
+    },
+    {
+      "role_id": "R05",
+      "name": "指挥控制要素",
+      "mention_count": 4
+    },
+    {
+      "role_id": "R06",
+      "name": "指挥保障要素",
+      "mention_count": 5
+    },
+    {
+      "role_id": "R07",
+      "name": "政治工作要素",
+      "mention_count": 3
+    },
+    {
+      "role_id": "R08",
+      "name": "后装保障要素",
+      "mention_count": 4
+    },
+    {
+      "role_id": "R09",
+      "name": "后方指挥员",
+      "mention_count": 1
+    },
+    {
+      "role_id": "R10",
+      "name": "作战部门",
+      "mention_count": 3
+    },
+    {
+      "role_id": "R11",
+      "name": "作训部门",
+      "mention_count": 1
+    },
+    {
+      "role_id": "R13",
+      "name": "机要部门",
+      "mention_count": 1
+    },
+    {
+      "role_id": "R14",
+      "name": "旅政治工作部",
+      "mention_count": 1
+    },
+    {
+      "role_id": "R15",
+      "name": "指挥机关",
+      "mention_count": 25
+    },
+    {
+      "role_id": "R16",
+      "name": "战勤部门",
+      "mention_count": 1
+    },
+    {
+      "role_id": "R17",
+      "name": "各业务部门",
+      "mention_count": 3
+    },
+    {
+      "role_id": "R18",
+      "name": "各指挥要素",
+      "mention_count": 26
+    }
+  ]
+}
