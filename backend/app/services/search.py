@@ -10,6 +10,7 @@ from app.services.embedding import embedding_service
 from app.services.data_manager import data_manager
 from app.services.vector_store import vector_store
 from app.services.graph_search import graph_search_service
+from app.services.rerank import rerank_service
 from app.utils.rrf import rrf_fuse
 
 
@@ -48,7 +49,9 @@ class SearchService:
         self, query: str, filters: Optional[dict] = None, top_k: int = None
     ) -> List[SearchResultItem]:
         top_k = top_k or settings.VECTOR_TOP_K
-        query_vector = await embedding_service.encode_single(query)
+        if not (query or "").strip():
+            return []
+        query_vector = await embedding_service.encode_for_vector_search(query)
         if not query_vector:
             return []
 
@@ -64,32 +67,71 @@ class SearchService:
 
     # ──────────────── BM25 检索 ────────────────
 
+    def _build_bm25_body(
+        self, query: str, filters: Optional[dict], top_k: int
+    ) -> dict:
+        """BM25：多字段 best_fields + 正文/标题链短语匹配 + 角色关键词，提高相关性与短语命中。"""
+        filter_clauses = self._build_es_filter(filters)
+        q = (query or "").strip()
+        should = [
+            {
+                "multi_match": {
+                    "query": q,
+                    "fields": [
+                        "text^3",
+                        "title^2",
+                        "title_chain^1.5",
+                    ],
+                    "type": "best_fields",
+                    "tie_breaker": 0.35,
+                }
+            },
+            {
+                "match_phrase": {
+                    "text": {
+                        "query": q,
+                        "boost": 2.8,
+                        "slop": 2,
+                    }
+                }
+            },
+            {
+                "match_phrase": {
+                    "title_chain": {
+                        "query": q,
+                        "boost": 2.2,
+                    }
+                }
+            },
+            {
+                "match": {
+                    "roles_mentioned": {
+                        "query": q,
+                        "boost": 1.25,
+                    }
+                }
+            },
+        ]
+        return {
+            "query": {
+                "bool": {
+                    "filter": filter_clauses,
+                    "should": should,
+                    "minimum_should_match": 1,
+                }
+            },
+            "size": top_k,
+        }
+
     async def bm25_search(
         self, query: str, filters: Optional[dict] = None, top_k: int = None
     ) -> List[SearchResultItem]:
         top_k = top_k or settings.BM25_TOP_K
         es = self._get_es_client()
+        if not (query or "").strip():
+            return []
 
-        must_clauses = [
-            {
-                "multi_match": {
-                    "query": query,
-                    "fields": ["text^3", "title^2", "title_chain"],
-                    "type": "best_fields",
-                }
-            }
-        ]
-        filter_clauses = self._build_es_filter(filters)
-
-        body = {
-            "query": {
-                "bool": {
-                    "must": must_clauses,
-                    "filter": filter_clauses,
-                }
-            },
-            "size": top_k,
-        }
+        body = self._build_bm25_body(query, filters, top_k)
 
         try:
             response = await es.search(index=settings.ES_INDEX, body=body)
@@ -145,18 +187,19 @@ class SearchService:
         if not self._chunks_cache:
             self.refresh_cache()
 
+        per_ch = settings.HYBRID_PER_CHANNEL_TOP_K
         tasks = {}
         if use_vector:
-            tasks["vector"] = self.vector_search(query, filters)
+            tasks["vector"] = self.vector_search(query, filters, top_k=per_ch)
         if use_bm25:
-            tasks["bm25"] = self.bm25_search(query, filters)
+            tasks["bm25"] = self.bm25_search(query, filters, top_k=per_ch)
         if use_graph:
-            tasks["graph"] = self.graph_search(query)
+            tasks["graph"] = self.graph_search(query, top_k=per_ch)
 
         if not tasks:
             logger.warning("All retrieval channels disabled, falling back to vector+bm25")
-            tasks["vector"] = self.vector_search(query, filters)
-            tasks["bm25"] = self.bm25_search(query, filters)
+            tasks["vector"] = self.vector_search(query, filters, top_k=per_ch)
+            tasks["bm25"] = self.bm25_search(query, filters, top_k=per_ch)
 
         keys = list(tasks.keys())
         raw_results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -169,24 +212,50 @@ class SearchService:
             else:
                 channel_results[key] = result
 
-        channels_for_rrf = [
-            [{"chunk_id": r.chunk_id, "score": r.score} for r in items]
-            for items in channel_results.values()
-            if items
-        ]
+        wmap = {
+            "vector": settings.RRF_WEIGHT_VECTOR,
+            "bm25": settings.RRF_WEIGHT_BM25,
+            "graph": settings.RRF_WEIGHT_GRAPH,
+        }
+        channels_for_rrf: List[List[Dict]] = []
+        rrf_weights: List[float] = []
+        for key in keys:
+            items = channel_results.get(key, [])
+            if items:
+                channels_for_rrf.append(
+                    [{"chunk_id": r.chunk_id, "score": r.score} for r in items]
+                )
+                rrf_weights.append(wmap[key])
 
         if not channels_for_rrf:
             return []
 
-        fused = rrf_fuse(channels_for_rrf, k=settings.RRF_K)
+        fused = rrf_fuse(
+            channels_for_rrf, k=settings.RRF_K, weights=rrf_weights
+        )
 
-        results = [
+        if not fused:
+            return []
+
+        pool_k = max(
+            final_top_k,
+            settings.RERANK_CANDIDATE_POOL
+            if rerank_service.is_available()
+            else final_top_k,
+        )
+        pool_k = min(pool_k, len(fused))
+        candidates = [
             self._enrich_result(item["chunk_id"], item["rrf_score"], "rrf")
-            for item in fused[:final_top_k]
+            for item in fused[:pool_k]
         ]
 
+        if rerank_service.is_available():
+            candidates = await rerank_service.rerank(query, candidates)
+
+        results = candidates[:final_top_k]
+
         counts = ", ".join(f"{k}={len(v)}" for k, v in channel_results.items())
-        logger.info(f"Hybrid search: {counts}, fused={len(results)} for '{query[:30]}...'")
+        logger.info(f"Hybrid search: {counts}, fused={len(fused)}, out={len(results)} for '{query[:30]}...'")
         return results
 
     # ──────────────── 三路对比（调试用） ────────────────
@@ -202,13 +271,14 @@ class SearchService:
         if not self._chunks_cache:
             self.refresh_cache()
 
+        per_ch = settings.HYBRID_PER_CHANNEL_TOP_K
         tasks = {}
         if use_vector:
-            tasks["vector"] = self.vector_search(query, filters)
+            tasks["vector"] = self.vector_search(query, filters, top_k=per_ch)
         if use_bm25:
-            tasks["bm25"] = self.bm25_search(query, filters)
+            tasks["bm25"] = self.bm25_search(query, filters, top_k=per_ch)
         if use_graph:
-            tasks["graph"] = self.graph_search(query)
+            tasks["graph"] = self.graph_search(query, top_k=per_ch)
 
         keys = list(tasks.keys())
         raw_results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -217,19 +287,51 @@ class SearchService:
         for key, result in zip(keys, raw_results):
             channel_results[key] = [] if isinstance(result, Exception) else result
 
-        channels_for_rrf = [
-            [{"chunk_id": r.chunk_id, "score": r.score} for r in items]
-            for items in channel_results.values()
-            if items
-        ]
+        wmap = {
+            "vector": settings.RRF_WEIGHT_VECTOR,
+            "bm25": settings.RRF_WEIGHT_BM25,
+            "graph": settings.RRF_WEIGHT_GRAPH,
+        }
+        channels_for_rrf: List[List[Dict]] = []
+        rrf_weights: List[float] = []
+        for key in keys:
+            items = channel_results.get(key, [])
+            if items:
+                channels_for_rrf.append(
+                    [{"chunk_id": r.chunk_id, "score": r.score} for r in items]
+                )
+                rrf_weights.append(wmap[key])
 
         rrf_results = []
+        rerank_results = []
+        rerank_meta: dict = {
+            "configured": rerank_service.is_available(),
+            "applied": False,
+        }
         if channels_for_rrf:
-            fused = rrf_fuse(channels_for_rrf, k=settings.RRF_K)
+            fused = rrf_fuse(
+                channels_for_rrf, k=settings.RRF_K, weights=rrf_weights
+            )
             rrf_results = [
                 self._enrich_result(item["chunk_id"], item["rrf_score"], "rrf")
-                for item in fused[:settings.FINAL_TOP_K]
+                for item in fused[: settings.FINAL_TOP_K]
             ]
+            if fused and rerank_service.is_available():
+                pool_k = min(len(fused), settings.RERANK_CANDIDATE_POOL)
+                pool = [
+                    self._enrich_result(item["chunk_id"], item["rrf_score"], "rrf")
+                    for item in fused[:pool_k]
+                ]
+                reranked = await rerank_service.rerank(query, pool)
+                rerank_results = reranked[: settings.FINAL_TOP_K]
+                rerank_meta["applied"] = True
+                rerank_meta["pool_size"] = pool_k
+            elif fused:
+                rerank_meta["reason"] = (
+                    "rerank_disabled"
+                    if not settings.RERANK_ENABLED
+                    else "no_rerank_api_key"
+                )
 
         return {
             "query": query,
@@ -237,6 +339,8 @@ class SearchService:
             "bm25_results": [r.model_dump() for r in channel_results.get("bm25", [])],
             "graph_results": [r.model_dump() for r in channel_results.get("graph", [])],
             "rrf_results": [r.model_dump() for r in rrf_results],
+            "rerank_results": [r.model_dump() for r in rerank_results],
+            "rerank_meta": rerank_meta,
         }
 
     async def close(self):

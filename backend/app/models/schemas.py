@@ -177,3 +177,5 @@ class SearchComparisonResponse(BaseModel):
     bm25_results: List[SearchResultItem] = Field(default_factory=list)
     graph_results: List[SearchResultItem] = Field(default_factory=list)
     rrf_results: List[SearchResultItem] = Field(default_factory=list)
+    rerank_results: List[SearchResultItem] = Field(default_factory=list)
+    rerank_meta: Optional[dict] = None  # applied / reason 等调试信息

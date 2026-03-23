@@ -98,5 +98,19 @@ class EmbeddingService:
             logger.warning(f"encode_single failed, vector search will be skipped: {e}")
             return []
 
+    def text_for_vector_retrieval(self, query: str) -> str:
+        """与建索引段落格式对齐的可选前缀（如 BGE 检索指令），默认原样 query。"""
+        q = (query or "").strip()
+        prefix = (settings.EMBEDDING_QUERY_PREFIX or "").strip()
+        if not prefix:
+            return q
+        if prefix.endswith(("\n", "。", "：", ":")):
+            return f"{prefix}{q}"
+        return f"{prefix} {q}"
+
+    async def encode_for_vector_search(self, query: str) -> List[float]:
+        """向量检索专用：先套用 EMBEDDING_QUERY_PREFIX 再向量化。"""
+        return await self.encode_single(self.text_for_vector_retrieval(query))
+
 
 embedding_service = EmbeddingService()

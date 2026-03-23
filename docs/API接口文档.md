@@ -26,7 +26,7 @@ Base URL：`http://127.0.0.1:8000/api/v1`
 |------|------|
 | **功能** | 同时执行向量、BM25、图谱三路检索，并返回 RRF 融合结果，便于对比各通道效果 |
 | **使用场景** | 调试检索质量、对比不同检索通道、获取 chunk_id 供后续图谱接口使用 |
-| **概述** | 多路检索对比接口，返回 `vector_results`、`bm25_results`、`graph_results`、`rrf_results` 四列结果。可通过 `retrieval` 控制启用哪些通道。 |
+| **概述** | 多路检索对比：返回 `vector_results`、`bm25_results`、`graph_results`、`rrf_results`（纯 RRF TopK），以及 **`rerank_results`**（与 `POST /chat` 一致的重排后 TopK）、**`rerank_meta`**（是否启用、pool 大小、跳过原因）。可通过 `retrieval` 控制启用哪些通道。 |
 
 **请求体**：`{ "query": "检索词", "filters": { "phase": "战斗准备" }, "retrieval": { "use_vector": true, "use_bm25": true, "use_graph": true } }`
 

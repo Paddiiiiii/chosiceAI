@@ -15,6 +15,113 @@
 - `backend/`：FastAPI 后端（检索 + 路由 + 数据处理）
 - `frontend/`：Vue 3 + Element Plus 前端
 - `main.py`：统一启动脚本（启动 ES、后端、前端）
+- `docker/`：Milvus 单机编排（`milvus-standalone-compose.yml`）
+- `docs/`：接口说明与技术方案文档
+
+---
+
+### 后端 `backend/app` 各文件职责
+
+| 路径 | 作用 |
+|------|------|
+| `main.py` | FastAPI 入口：CORS、路由注册、`lifespan` 中刷新 Chunk 缓存并关闭 ES / Milvus / Neo4j 等连接。 |
+| `config.py` | `pydantic-settings` 读取环境变量与 `.env`：LLM、Embedding、Milvus、ES、Neo4j、检索与**重排**参数。 |
+| `models/schemas.py` | 请求/响应与领域模型：Chunk、路由结果、`SearchResultItem`、检索对比结构等。 |
+| `utils/rrf.py` | **RRF（Reciprocal Rank Fusion）** 多列表融合，支持按通道权重加权。 |
+| `services/embedding.py` | 文本向量化：Ollama 主通道、SiliconFlow 备用；`encode_for_vector_search` 支持查询前缀。 |
+| `services/vector_store.py` | **Milvus**：建集合、HNSW+COSINE 索引、按 `phase/scope/battle_type` 过滤的向量检索。 |
+| `services/index_builder.py` | 离线建索引：全量 Embedding → Milvus；同义词注入 ES IK → BM25 索引。 |
+| `services/search.py` | **混合检索编排**：向量 + BM25 + 图谱并行 → 加权 RRF → 可选**重排** → 截断 `FINAL_TOP_K`。 |
+| `services/rerank.py` | **交叉编码器重排**：调用 SiliconFlow `/v1/rerank`（默认 `bge-reranker-v2-m3`），失败则回退 RRF 顺序。 |
+| `services/graph_search.py` | Neo4j：全文检索 Task（混合检索图谱路）、`role_tasks` / `task_decompose` 等图谱 API 用 Cypher。 |
+| `services/graph_builder.py` | 流程图谱构建写入 Neo4j（与 `graph_search` 读写对应）。 |
+| `services/data_manager.py` | 读写 `data/` 下 chunks、角色表、同义词、文档元数据等 JSON。 |
+| `services/router_judge.py` | 结合检索到的 Chunk 与角色表，调用 LLM 输出牵头/参与/审批与依据。 |
+| `services/intent.py` | 从旅长自然语言中抽取**检索子句**（供检索用）。 |
+| `services/llm_client.py` | 统一封装 DeepSeek/OpenAI 兼容 HTTP 调用。 |
+| `services/document_processor.py` | 文档处理流水线编排（纠错、解析、分块等）。 |
+| `services/ocr_correction.py` | OCR/文本纠错与日志。 |
+| `services/structure_parser.py` | 章节结构解析。 |
+| `services/chunker.py` | 分块与 Chunk 生成。 |
+| `services/role_annotator.py` / `role_extractor.py` | 角色提及标注与抽取。 |
+| `routers/chat.py` | `POST /chat`：意图 → 混合检索（含重排）→ 路由判定。 |
+| `routers/resolve.py` | 实体/任务解析类接口，内部复用混合检索。 |
+| `routers/search.py` | `POST /search/comparison`：分路结果 + RRF + **rerank_results** 对比。 |
+| `routers/graph.py` | 图谱查询 REST（任务拆解、角色任务等）。 |
+| `routers/documents.py` | 文档上传、处理、建索引、删除。 |
+| `routers/chunks.py` / `structure.py` / `roles.py` / `synonyms.py` / `level_patterns.py` / `review.py` | 各配置与浏览类 API。 |
+
+### 根目录与前端要点
+
+| 路径 | 作用 |
+|------|------|
+| `main.py` | 一键拉起 ES（可选）、后端 uvicorn、前端静态站与 `/api` 反代。 |
+| `test_api_flows.py` | 接口串联验证脚本（需服务已启动）。 |
+| `frontend/src/App.vue` / `router/index.js` | 布局与路由。 |
+| `frontend/src/api/index.js` | 后端 API 封装。 |
+| `frontend/src/views/RoutingQuery.vue` | 路由查询页。 |
+| `frontend/src/views/SearchComparison.vue` | 检索对比（向量/BM25/图谱/RRF/**重排**）。 |
+| `frontend/src/views/RoleManagement.vue` 等 | 各业务页。 |
+
+---
+
+### 检索与重排逻辑（详解）
+
+系统对**用户查询**同时走多路召回，再用 **RRF** 合并排序，最后用**重排模型**对候选精排（与 `POST /chat`、解析类接口一致）。
+
+```mermaid
+flowchart TB
+  subgraph recall [多路召回 并行]
+    V[向量检索 Milvus]
+    B[BM25 Elasticsearch]
+    G[图谱全文 Neo4j task_fulltext]
+  end
+  Q[用户 query] --> V
+  Q --> B
+  Q --> G
+  F[上下文过滤 phase / battle_type / scope] --> V
+  F --> B
+  V --> RRF[加权 RRF 融合]
+  B --> RRF
+  G --> RRF
+  RRF --> POOL[取 RRF 前 RERANK_CANDIDATE_POOL 条]
+  POOL --> RK{重排已配置?}
+  RK -->|是 SiliconFlow rerank| RR[交叉编码器打分重排]
+  RK -->|否| OUT[截断 FINAL_TOP_K]
+  RR --> OUT
+```
+
+**步骤说明：**
+
+1. **向量路（Milvus）**  
+   - 索引字段与建库一致：`title_chain + "\n" + text` 做 Embedding；查询侧经 `EMBEDDING_QUERY_PREFIX`（可选）后再向量化。  
+   - 度量：**余弦距离**（语义相近得分高）。  
+   - 支持按 `phase`、`battle_type`、`scope` 标量过滤（与 Chunk 元数据一致）。
+
+2. **BM25 路（Elasticsearch）**  
+   - `bool` + 多 `should`：`multi_match`（`text^3`、`title^2`、`title_chain^1.5`，`best_fields`）+ `match_phrase`（正文/标题链，短语更准）+ `roles_mentioned` 加权。  
+   - `filter` 中叠加上下文 term 过滤。  
+   - 同义词在索引构建时写入 IK 分析链。
+
+3. **图谱路（Neo4j）**  
+   - 对 Task/TaskGroup 节点的全文索引 `task_fulltext` 做查询，返回 `chunk_id` 与相关度。  
+   - **不参与** Milvus/ES 的 phase 过滤（与当前实现一致）。
+
+4. **加权 RRF**  
+   - 各路先取 **`HYBRID_PER_CHANNEL_TOP_K`** 条（默认大于单路调试的 TopK），再融合。  
+   - 默认权重：向量 **1.15**、BM25 **1.0**、图谱 **0.9**（可在 `.env` 调整）。  
+   - 公式：对每路第 `rank` 名文档累加 `weight / (RRF_K + rank)`，总分降序。
+
+5. **重排（Rerank）**  
+   - 在 RRF 全序上取前 **`RERANK_CANDIDATE_POOL`** 条（默认 24），将每条 Chunk 拼成短文档（`title_chain` + `title` + `text`，截断 `RERANK_MAX_DOC_CHARS`），调用 **`RERANK_API_URL`**（默认 SiliconFlow `/v1/rerank`，模型 `BAAI/bge-reranker-v2-m3`）。  
+   - **API Key**：优先 `RERANK_API_KEY`，为空则用 **`SILICONFLOW_API_KEY`**。未配置密钥或 `RERANK_ENABLED=false` 时**跳过重排**，直接按 RRF 顺序截断。  
+   - 接口失败时**回退**为 RRF 顺序，避免聊天中断。  
+   - 返回给前端的 `source` 在重排成功时为 `rerank`，`score` 为模型相关性分。
+
+6. **最终输出**  
+   - 取重排（或 RRF）结果的前 **`FINAL_TOP_K`** 条，作为路由 LLM 的上下文依据。
+
+调试：调用 **`POST /api/v1/search/comparison`** 可同时查看 `vector_results`、`bm25_results`、`graph_results`、**`rrf_results`（纯 RRF TopK）**、**`rerank_results`（与线上一致）** 及 **`rerank_meta`**。
 
 ---
 
@@ -40,6 +147,10 @@
 - **向量服务（Embedding）**
   - 默认配置：`EMBEDDING_URL=http://192.168.1.200:11434/api/embeddings`
   - 需要保证该地址可用，否则索引构建会失败（见后文“建索引问题排查”）。
+
+- **重排服务（Rerank，可选但推荐）**
+  - 默认走 **SiliconFlow** `POST /v1/rerank`，需配置 **`SILICONFLOW_API_KEY`**（或单独 `RERANK_API_KEY`）。未配置时自动跳过重排，仅 RRF。  
+  - 相关环境变量：`RERANK_ENABLED`、`RERANK_MODEL`、`RERANK_CANDIDATE_POOL` 等（见 `backend/app/config.py`）。
 
 ### 2.2 Python 环境与后端依赖（推荐虚拟环境）
 
@@ -142,14 +253,10 @@ Ctrl+C 可退出并尝试关闭子进程。
 
 ### 3.3 检索对比页（/search）
 
-- 顶部输入框：输入检索语句，点击“检索对比”。
-- 下方三列：
-  - 左：向量检索结果列表。
-  - 中：BM25 检索结果列表。
-  - 右：RRF 融合结果列表。
+- 顶部输入框：输入检索语句，点击“检索对比”；可选勾选向量 / BM25 / 图谱通道。
+- 下方四列：向量、BM25、图谱、**RRF 融合**（纯 RRF TopK，与重排前一致）。
+- 其下：**重排结果**（与 `POST /chat` 实际使用的顺序一致；未配置重排 API 时会提示原因）。
 - 每条结果显示：排名、标题、章节路径、得分、文本前若干字。
-
-> 后端接口已经支持“图谱检索结果 graph_results”，前端可以后续扩展一列展示。
 
 ### 3.4 文档管理页（/documents）
 

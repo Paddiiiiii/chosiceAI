@@ -22,7 +22,7 @@
 
     <!-- 四路结果对比 -->
     <el-row :gutter="16" v-if="result">
-      <el-col :span="6">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never">
           <template #header>
             <span>🔷 向量检索 ({{ result.vector_results.length }})</span>
@@ -30,7 +30,7 @@
           <ResultList :items="result.vector_results" />
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never">
           <template #header>
             <span>🔶 BM25 检索 ({{ result.bm25_results.length }})</span>
@@ -38,7 +38,7 @@
           <ResultList :items="result.bm25_results" />
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never">
           <template #header>
             <span>🟣 图谱检索 ({{ result.graph_results.length }})</span>
@@ -46,7 +46,7 @@
           <ResultList :items="result.graph_results" />
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="never">
           <template #header>
             <span>🟢 RRF 融合 ({{ result.rrf_results.length }})</span>
@@ -55,11 +55,20 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <el-card v-if="result" shadow="never" style="margin-top: 16px">
+      <template #header>
+        <span>⭐ 重排后（与路由查询 /chat 一致，{{ (result.rerank_results || []).length }} 条）</span>
+        <span v-if="rerankHint" style="float: right; font-size: 12px; color: #909399">{{ rerankHint }}</span>
+      </template>
+      <ResultList v-if="(result.rerank_results || []).length" :items="result.rerank_results" />
+      <p v-else class="rerank-skip">{{ rerankSkipText }}</p>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, defineComponent, h } from 'vue'
+import { ref, computed, defineComponent, h } from 'vue'
 import { ElMessage } from 'element-plus'
 import { searchComparison } from '../api'
 
@@ -70,6 +79,23 @@ const opts = ref({
   use_vector: true,
   use_bm25: true,
   use_graph: true,
+})
+
+const rerankHint = computed(() => {
+  const m = result.value?.rerank_meta
+  if (!m) return ''
+  if (m.applied) return `pool=${m.pool_size ?? '-'}`
+  return ''
+})
+
+const rerankSkipText = computed(() => {
+  const m = result.value?.rerank_meta
+  if (!m) return '无重排元数据'
+  if (m.applied) return '无结果'
+  const r = m.reason
+  if (r === 'rerank_disabled') return '已关闭重排（RERANK_ENABLED=false）'
+  if (r === 'no_rerank_api_key') return '未配置 RERANK_API_KEY / SILICONFLOW_API_KEY，已跳过重排'
+  return '本次未执行重排'
 })
 
 const doSearch = async () => {
