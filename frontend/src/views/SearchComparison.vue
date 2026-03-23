@@ -1,5 +1,16 @@
 <template>
   <div>
+    <!-- 检索通道选择（发送前可选） -->
+    <el-card shadow="never" style="margin-bottom: 12px">
+      <el-form inline size="small">
+        <el-form-item label="检索通道">
+          <el-checkbox v-model="opts.use_vector">向量</el-checkbox>
+          <el-checkbox v-model="opts.use_bm25">BM25</el-checkbox>
+          <el-checkbox v-model="opts.use_graph">图谱</el-checkbox>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
     <!-- 查询输入 -->
     <el-card shadow="never" style="margin-bottom: 16px">
       <el-input v-model="query" placeholder="输入检索查询..." @keyup.enter="doSearch" size="large">
@@ -7,20 +18,6 @@
           <el-button @click="doSearch" :loading="loading" type="primary">检索对比</el-button>
         </template>
       </el-input>
-    </el-card>
-
-    <!-- 检索通道开关 -->
-    <el-card shadow="never" style="margin-bottom: 12px" v-if="result">
-      <el-form inline size="small">
-        <el-form-item label="检索通道">
-          <el-checkbox v-model="opts.use_vector">向量</el-checkbox>
-          <el-checkbox v-model="opts.use_bm25">BM25</el-checkbox>
-          <el-checkbox v-model="opts.use_graph">图谱</el-checkbox>
-        </el-form-item>
-        <el-form-item>
-          <el-button size="small" @click="doSearch" :loading="loading">重新检索</el-button>
-        </el-form-item>
-      </el-form>
     </el-card>
 
     <!-- 四路结果对比 -->
@@ -63,6 +60,7 @@
 
 <script setup>
 import { ref, defineComponent, h } from 'vue'
+import { ElMessage } from 'element-plus'
 import { searchComparison } from '../api'
 
 const query = ref('')

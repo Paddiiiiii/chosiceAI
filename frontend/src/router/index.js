@@ -5,6 +5,7 @@ const routes = [
   { path: '/routing', name: 'RoutingQuery', component: () => import('../views/RoutingQuery.vue'), meta: { title: '路由查询' } },
   { path: '/search', name: 'SearchComparison', component: () => import('../views/SearchComparison.vue'), meta: { title: '检索对比' } },
   { path: '/tree', name: 'DocumentTree', component: () => import('../views/DocumentTree.vue'), meta: { title: '结构浏览' } },
+  { path: '/graph-browse', name: 'GraphBrowse', component: () => import('../views/GraphBrowse.vue'), meta: { title: '图谱浏览' } },
   { path: '/chunks', name: 'ChunkDetail', component: () => import('../views/ChunkDetail.vue'), meta: { title: 'Chunk 详情' } },
   { path: '/ocr-review', name: 'OcrReview', component: () => import('../views/OcrReview.vue'), meta: { title: 'OCR 审核' } },
   { path: '/roles', name: 'RoleManagement', component: () => import('../views/RoleManagement.vue'), meta: { title: '角色管理' } },

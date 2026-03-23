@@ -31,6 +31,12 @@ async def graph_stats():
     return await graph_search_service.graph_stats()
 
 
+@router.get("/viz")
+async def graph_viz(max_nodes: int = Query(500, ge=1, le=2000)):
+    """返回图谱可视化数据（节点+边），供前端渲染"""
+    return await graph_search_service.get_graph_for_viz(max_nodes=max_nodes)
+
+
 # ──────────────── 角色职责查询 ────────────────
 
 @router.get("/role_tasks")

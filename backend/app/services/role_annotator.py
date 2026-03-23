@@ -21,7 +21,10 @@ class RoleAnnotatorService:
         Returns:
             (标注后的 Chunk 列表, 需审核条目列表)
         """
-        role_names = [r.name for r in role_registry.roles]
+        role_names = [
+            r.name for r in role_registry.roles
+            if getattr(r, "status", "approved") == "approved"
+        ]
         review_items: List[ReviewItem] = []
         mention_counts: dict = {name: 0 for name in role_names}
 

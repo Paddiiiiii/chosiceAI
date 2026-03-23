@@ -29,6 +29,10 @@
             <el-icon><Collection /></el-icon>
             <span>结构浏览</span>
           </el-menu-item>
+          <el-menu-item index="/graph-browse">
+            <el-icon><Share /></el-icon>
+            <span>图谱浏览</span>
+          </el-menu-item>
           <el-menu-item index="/chunks">
             <el-icon><Document /></el-icon>
             <span>Chunk 详情</span>

@@ -69,9 +69,19 @@
         </el-card>
       </el-col>
 
-      <!-- 右侧：过滤条件 -->
+      <!-- 右侧：过滤条件与检索通道 -->
       <el-col :span="8">
         <el-card shadow="never">
+          <template #header>检索通道（发送前选择）</template>
+          <el-form label-position="top" size="small">
+            <el-form-item label="使用的检索方式">
+              <el-checkbox v-model="retrieval.use_vector">向量</el-checkbox>
+              <el-checkbox v-model="retrieval.use_bm25">BM25</el-checkbox>
+              <el-checkbox v-model="retrieval.use_graph">图谱</el-checkbox>
+            </el-form-item>
+          </el-form>
+        </el-card>
+        <el-card shadow="never" style="margin-top: 16px">
           <template #header>过滤条件（可选）</template>
           <el-form label-position="top" size="small">
             <el-form-item label="战斗阶段">
@@ -117,6 +127,7 @@ const messages = ref([])
 const lastSearchResults = ref([])
 const chatRef = ref(null)
 const filters = ref({ phase: '', battle_type: '' })
+const retrieval = ref({ use_vector: true, use_bm25: true, use_graph: true })
 
 // 从 sessionStorage 恢复对话
 onMounted(() => {
@@ -156,7 +167,7 @@ const sendQuery = async () => {
     if (filters.value.battle_type) ctx.battle_type = filters.value.battle_type
     const context = Object.keys(ctx).length > 0 ? ctx : null
 
-    const { data } = await chatQuery(text, context)
+    const { data } = await chatQuery(text, context, retrieval.value)
     messages.value.push({ role: 'system', result: data.result })
     lastSearchResults.value = data.search_results || []
   } catch (e) {

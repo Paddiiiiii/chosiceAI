@@ -26,20 +26,44 @@
   - 端口：`9200`
   - Windows 下由 `soft/elasticsearch-8.12.0/bin/elasticsearch.bat` 启动（`main.py` 会自动拉起）。
 - **Neo4j 5.x**
-  - 地址：`bolt://192.168.1.190:7687`（浏览器 HTTP 端口 7474）
-  - 账号密码：`neo4j / neo4j`
+  - 地址：`bolt://localhost:7687`（浏览器 HTTP 端口 7474）
+  - 账号密码：`neo4j / neo4j@openspg`
   - **无需手动建图谱和索引**：前端"文档管理"页提供"构建流程图谱"按钮，点击后自动完成图谱导入和全文索引创建。
 
 - **向量服务（Embedding）**
   - 默认配置：`EMBEDDING_URL=http://192.168.1.200:11434/api/embeddings`
   - 需要保证该地址可用，否则索引构建会失败（见后文“建索引问题排查”）。
 
-### 2.2 后端依赖安装
+### 2.2 Python 环境与后端依赖（推荐虚拟环境）
 
-```bash
-cd backend
-pip install -r requirements.txt
-```
+**前提**：已安装 **Python 3.12**（建议）。Windows 若命令行里没有 `python`，可试 **`py`**（Python 启动器）。
+
+**步骤**（均在项目根目录 `chosen/` 下操作）：
+
+1. **进入项目根目录**  
+   - PowerShell：`Set-Location f:\chosen`（按你的实际路径修改）。
+
+2. **创建虚拟环境**（只需执行一次；已存在 `.venv` 可跳过）  
+   - `py -3.12 -m venv .venv`  
+   - 或：`python -m venv .venv`
+
+3. **激活虚拟环境**  
+   - **PowerShell**：`.\.venv\Scripts\Activate.ps1`  
+     - 若提示无法加载脚本：先执行 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`，再激活。  
+   - **cmd**：`.\.venv\Scripts\activate.bat`
+
+4. **升级 pip 并安装依赖**（激活后提示符前一般有 `(.venv)`）  
+   - `python -m pip install --upgrade pip`  
+   - `pip install -r backend\requirements.txt`  
+   - （Linux/macOS 将路径写为 `backend/requirements.txt` 即可。）
+
+5. **在 IDE 中选解释器（可选）**  
+   - 选择：`项目根\.venv\Scripts\python.exe`，与上述环境一致。
+
+6. **之后每次开发**  
+   - 先激活 `.venv`，再在根目录执行 `python main.py`。
+
+**不推荐**：在未激活虚拟环境时，直接在 `backend` 里对全局 Python 执行 `pip install -r requirements.txt`，容易与系统或其它项目冲突。
 
 关键依赖：`fastapi`、`uvicorn[standard]`、`elasticsearch[async]`、`neo4j`、`httpx`、`loguru`、`tenacity` 等。
 
@@ -55,7 +79,7 @@ npm run build
 
 ### 2.4 一键启动
 
-在项目根目录执行：
+在项目根目录、且已按 **2.2** 激活 `.venv`（或 IDE 已选用该解释器）后执行：
 
 ```bash
 python main.py
@@ -142,7 +166,7 @@ Ctrl+C 可退出并尝试关闭子进程。
 
 ## 四、后端接口设计（核心部分）
 
-所有接口均以 `/api/v1` 为前缀。
+所有接口均以 `/api/v1` 为前缀。每个接口的**功能**、**使用场景**、**概述**详见 [docs/API接口文档.md](docs/API接口文档.md)。
 
 ### 4.1 路由主接口：聊天 + 混合检索
 

@@ -4,24 +4,40 @@
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span>角色列表</span>
-          <el-button type="primary" @click="showAdd" size="small">
-            <el-icon><Plus /></el-icon> 新增角色
-          </el-button>
+          <div>
+            <el-button size="small" @click="doExtract" :loading="extracting">
+              <el-icon><MagicStick /></el-icon> 自动提取
+            </el-button>
+            <el-button type="primary" @click="showAdd" size="small">
+              <el-icon><Plus /></el-icon> 新增角色
+            </el-button>
+          </div>
         </div>
       </template>
 
       <el-table :data="roles" stripe>
         <el-table-column prop="role_id" label="角色 ID" width="100" />
-        <el-table-column prop="name" label="角色名称" min-width="200" />
-        <el-table-column prop="mention_count" label="提及次数" width="100" sortable />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column prop="name" label="角色名称" min-width="200">
           <template #default="{ row }">
-            <el-button size="small" @click="showEdit(row)">编辑</el-button>
-            <el-popconfirm title="确定删除?" @confirm="doDelete(row.role_id)">
-              <template #reference>
-                <el-button size="small" type="danger">删除</el-button>
-              </template>
-            </el-popconfirm>
+            <span :style="{ color: isPending(row) ? '#f56c6c' : '' }">{{ row.name }}</span>
+            <el-tag v-if="isPending(row)" type="danger" size="small" style="margin-left: 6px">待审批</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="mention_count" label="提及次数" width="100" sortable />
+        <el-table-column label="操作" width="260" fixed="right">
+          <template #default="{ row }">
+            <template v-if="isPending(row)">
+              <el-button size="small" type="success" @click="doApprove(row.role_id)">同意</el-button>
+              <el-button size="small" type="danger" @click="doReject(row.role_id)">不同意</el-button>
+            </template>
+            <template v-else>
+              <el-button size="small" @click="showEdit(row)">编辑</el-button>
+              <el-popconfirm title="确定删除?" @confirm="doDelete(row.role_id)">
+                <template #reference>
+                  <el-button size="small" type="danger">删除</el-button>
+                </template>
+              </el-popconfirm>
+            </template>
           </template>
         </el-table-column>
       </el-table>
@@ -45,7 +61,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getRoles, addRole, updateRole, deleteRole } from '../api'
+import { getRoles, addRole, updateRole, deleteRole, extractRoles, approveRole, rejectRole } from '../api'
 
 const roles = ref([])
 const dialogVisible = ref(false)
@@ -53,8 +69,13 @@ const isEdit = ref(false)
 const editId = ref('')
 const formName = ref('')
 const saving = ref(false)
+const extracting = ref(false)
 
 onMounted(fetchRoles)
+
+function isPending(row) {
+  return row.status === 'pending'
+}
 
 async function fetchRoles() {
   const { data } = await getRoles()
@@ -97,5 +118,34 @@ async function doDelete(roleId) {
   await deleteRole(roleId)
   await fetchRoles()
   ElMessage.success('已删除')
+}
+
+async function doExtract() {
+  extracting.value = true
+  try {
+    const { data } = await extractRoles()
+    await fetchRoles()
+    ElMessage.success(data?.message || `提取完成，新增 ${data?.added || 0} 个待审批角色`)
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || e.response?.data?.message || '提取失败')
+  } finally {
+    extracting.value = false
+  }
+}
+
+async function doApprove(roleId) {
+  await approveRole(roleId)
+  await fetchRoles()
+  ElMessage.success('已通过')
+}
+
+async function doReject(roleId) {
+  try {
+    await rejectRole(roleId)
+    await fetchRoles()
+    ElMessage.success('已拒绝并删除')
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || '操作失败')
+  }
 }
 </script>

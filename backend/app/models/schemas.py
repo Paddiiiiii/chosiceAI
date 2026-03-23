@@ -43,6 +43,8 @@ class Role(BaseModel):
     role_id: str
     name: str
     mention_count: int = 0
+    status: Literal["approved", "pending", "rejected"] = "approved"  # 审批状态
+    source: Literal["manual", "auto"] = "manual"  # 来源：人工/自动提取
 
 
 class RoleRegistry(BaseModel):

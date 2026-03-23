@@ -19,9 +19,13 @@ ROUTING_PROMPT = """你是军事指挥体制专家。旅长下达了以下指示
 ## 候选角色列表
 {roles_formatted}
 
+## 判定规则
+- lead：旅长所问的**具体工作**由谁负责，就选谁。若手册中某角色「突出分析」「重点负责」「拟制」某项内容，且旅长问的正是该项，则 lead 选该角色，而非仅选整体牵头。
+- participants：参与协助的角色；approver：审批角色。
+
 请基于手册规定，输出 JSON：
 {{
-  "lead": "牵头负责的角色（从候选列表中选）",
+  "lead": "具体负责旅长所问工作的角色（从候选列表中选）",
   "participants": ["参与协助的角色"],
   "approver": "审批角色（如有，没有则为 null）",
   "reasoning": "2~3句判断依据，引用手册原文",
@@ -104,7 +108,10 @@ class RouterJudgeService:
         return "\n\n".join(parts) if parts else "（未找到相关手册规定）"
 
     def _format_roles(self, registry: RoleRegistry) -> str:
-        return "、".join(r.name for r in registry.roles)
+        return "、".join(
+            r.name for r in registry.roles
+            if getattr(r, "status", "approved") == "approved"
+        )
 
     def _parse_result(
         self, data: dict, search_results: List[SearchResultItem]

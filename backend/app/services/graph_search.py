@@ -333,6 +333,98 @@ class GraphSearchService:
             logger.error(f"task_detail query failed: {e}")
             return {"chunk_id": chunk_id, "error": str(e)}
 
+    # ──────────────── 图谱可视化数据 ────────────────
+
+    def _node_info(self, node):
+        """
+        从 Neo4j 返回的节点提取 label 和 props。
+        兼容 Node 对象和 result.data() 序列化后的 dict。
+        """
+        if isinstance(node, dict):
+            labels = node.get("labels") or node.get("label")
+            if isinstance(labels, list) and labels:
+                lbl = labels[0]
+            elif isinstance(labels, str):
+                lbl = labels
+            else:
+                lbl = "Node"
+            props = {k: v for k, v in node.items() if k not in ("labels", "label", "element_id")}
+            return lbl, props
+        lbl = node.labels[0] if node.labels else "Node"
+        props = dict(node)
+        return lbl, props
+
+    def _node_id(self, node) -> str:
+        """生成节点唯一 id，优先用 chunk_id/name"""
+        lbl, props = self._node_info(node)
+        uid = props.get("chunk_id") or props.get("name")
+        if uid:
+            return f"{lbl}:{uid}"
+        eid = node.get("element_id") if isinstance(node, dict) else getattr(node, "element_id", None)
+        return eid or f"{lbl}:_{id(node)}"
+
+    async def get_graph_for_viz(self, max_nodes: int = 500) -> dict:
+        """
+        返回图谱节点和边，供前端可视化。
+        vis-network 格式：nodes [{id, label, group}], edges [{from, to, label}]
+        """
+        driver = self._get_driver()
+        label_colors = {
+            "Role": "#4CAF50",
+            "Task": "#2196F3",
+            "TaskGroup": "#2196F3",
+            "Phase": "#FF9800",
+            "BattleType": "#9C27B0",
+            "Product": "#00BCD4",
+        }
+        default_color = "#757575"
+
+        try:
+            async with driver.session() as session:
+                # 一次查询获取节点和边，通过路径采样
+                result = await session.run(
+                    """
+                    MATCH (a)-[r]->(b)
+                    WITH a, r, b LIMIT $max
+                    RETURN a, type(r) AS relType, b
+                    """,
+                    max=max_nodes * 2,  # 边数约等于节点数
+                )
+                records = await result.data()
+
+            nodes_map = {}
+            edges = []
+
+            for rec in records:
+                a, b, rel = rec.get("a"), rec.get("b"), rec.get("relType", "")
+                for node in [a, b]:
+                    if not node:
+                        continue
+                    nid = self._node_id(node)
+                    if nid not in nodes_map:
+                        lbl, props = self._node_info(node)
+                        name = props.get("name") or props.get("chunk_id") or nid
+                        nodes_map[nid] = {
+                            "id": nid,
+                            "label": str(name)[:30],
+                            "group": lbl,
+                            "title": f"{lbl}: {name}",
+                        }
+                if a and b and rel:
+                    aid, bid = self._node_id(a), self._node_id(b)
+                    edges.append({"from": aid, "to": bid, "label": rel, "title": rel})
+
+            nodes = list(nodes_map.values())
+            return {
+                "nodes": nodes,
+                "edges": edges,
+                "labelColors": label_colors,
+                "defaultColor": default_color,
+            }
+        except Exception as e:
+            logger.error(f"get_graph_for_viz failed: {e}")
+            return {"nodes": [], "edges": [], "labelColors": {}, "defaultColor": default_color}
+
     # ──────────────── 图谱统计 ────────────────
 
     async def graph_stats(self) -> dict:

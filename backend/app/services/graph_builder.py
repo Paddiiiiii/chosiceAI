@@ -66,7 +66,10 @@ class GraphBuilder:
             "belongs_to": 0, "in_battle_type": 0,
         }
 
-        role_names = [r.name for r in role_registry.roles]
+        role_names = [
+            r.name for r in role_registry.roles
+            if getattr(r, "status", "approved") == "approved"
+        ]
         phases = set()
         battle_types = set()
         chunk_map: Dict[str, Chunk] = {c.chunk_id: c for c in chunks}
@@ -192,7 +195,10 @@ class GraphBuilder:
         self, session, chunks: List[Chunk], role_registry: RoleRegistry
     ) -> dict:
         stats = {"led_by": 0, "approved_by": 0, "produces": 0, "depends_on": 0}
-        role_list_str = "、".join(r.name for r in role_registry.roles)
+        role_list_str = "、".join(
+            r.name for r in role_registry.roles
+            if getattr(r, "status", "approved") == "approved"
+        )
 
         detail_chunks = [c for c in chunks if c.chunk_type == "detail" and c.text]
 

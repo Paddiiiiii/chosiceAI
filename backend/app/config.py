@@ -27,9 +27,9 @@ class Settings(BaseSettings):
     ES_INDEX: str = "military_manual"
 
     # Neo4j
-    NEO4J_URI: str = "bolt://192.168.1.190:7687"
+    NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"
-    NEO4J_PASSWORD: str = "neo4j@openspg"
+    NEO4J_PASSWORD: str = "neo4j"
 
     # Data directory
     DATA_DIR: str = "./data"

@@ -6,8 +6,8 @@ const api = axios.create({
 })
 
 // ─────────── Chat / 路由查询 ───────────
-export const chatQuery = (input, context = null) =>
-  api.post('/chat', { input, context })
+export const chatQuery = (input, context = null, retrieval = null) =>
+  api.post('/chat', { input, context, retrieval })
 
 // ─────────── 文档管理 ───────────
 export const listDocuments = () => api.get('/documents')
@@ -34,6 +34,9 @@ export const getRoles = () => api.get('/roles')
 export const addRole = (name) => api.post('/roles', { name })
 export const updateRole = (roleId, name) => api.put(`/roles/${roleId}`, { name })
 export const deleteRole = (roleId) => api.delete(`/roles/${roleId}`)
+export const extractRoles = () => api.post('/roles/extract', null, { timeout: 60000 })
+export const approveRole = (roleId) => api.post(`/roles/${roleId}/approve`)
+export const rejectRole = (roleId) => api.post(`/roles/${roleId}/reject`)
 
 // ─────────── 审核 ───────────
 export const listReviews = (params) => api.get('/review/items', { params })
@@ -55,6 +58,8 @@ export const refreshCache = () => api.post('/search/refresh-cache')
 export const rebuildGraphApi = (useLlm = false) =>
   api.post(`/graph/rebuild?use_llm=${useLlm}`, null, { timeout: 600000 })
 export const getGraphStats = () => api.get('/graph/stats')
+export const getGraphViz = (maxNodes = 500) =>
+  api.get('/graph/viz', { params: { max_nodes: maxNodes } })
 export const getRoleTasks = (role, phase = null) =>
   api.get('/graph/role_tasks', { params: { role, phase } })
 export const getTaskRoles = (chunkId = null, taskName = null) =>
