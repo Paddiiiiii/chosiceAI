@@ -52,7 +52,7 @@ class SearchService:
         if not query_vector:
             return []
 
-        results = vector_store.search(
+        results = await vector_store.search(
             query_vector=query_vector, top_k=top_k, filters=filters
         )
         items = [

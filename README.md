@@ -22,6 +22,13 @@
 
 ### 2.1 依赖服务
 
+- **Milvus 2.6（向量库）**
+  - gRPC 端口：`19530`（与 `backend/.env` 中 `MILVUS_HOST`、`MILVUS_PORT` 一致，默认 `127.0.0.1:19530`）。
+  - 本机 Docker 一键起（etcd + minio + standalone，数据在 `docker/milvus-volumes/`）：
+    ```bash
+    docker compose -f docker/milvus-standalone-compose.yml up -d
+    ```
+  - 健康检查：`http://127.0.0.1:9091/healthz`（容器内 metrics/health）。
 - **Elasticsearch 8.x**
   - 端口：`9200`
   - Windows 下由 `soft/elasticsearch-8.12.0/bin/elasticsearch.bat` 启动（`main.py` 会自动拉起）。
@@ -65,7 +72,7 @@
 
 **不推荐**：在未激活虚拟环境时，直接在 `backend` 里对全局 Python 执行 `pip install -r requirements.txt`，容易与系统或其它项目冲突。
 
-关键依赖：`fastapi`、`uvicorn[standard]`、`elasticsearch[async]`、`neo4j`、`httpx`、`loguru`、`tenacity` 等。
+关键依赖：`fastapi`、`uvicorn[standard]`、`pymilvus`、`elasticsearch[async]`、`neo4j`、`httpx`、`loguru`、`tenacity` 等。
 
 ### 2.3 前端依赖与构建
 

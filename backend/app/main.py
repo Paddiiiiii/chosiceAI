@@ -9,6 +9,7 @@ from app.services.search import search_service
 from app.services.index_builder import index_builder
 from app.services.graph_search import graph_search_service
 from app.services.graph_builder import graph_builder
+from app.services.vector_store import vector_store
 
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ async def lifespan(app: FastAPI):
     await index_builder.close()
     await graph_search_service.close()
     await graph_builder.close()
+    await vector_store.shutdown()
 
 
 app = FastAPI(

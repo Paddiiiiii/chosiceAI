@@ -18,8 +18,9 @@ class Settings(BaseSettings):
     SILICONFLOW_EMBEDDING_URL: str = "https://api.siliconflow.cn/v1/embeddings"
     SILICONFLOW_EMBEDDING_MODEL: str = "BAAI/bge-large-zh-v1.5"  # 1024 维，与主通道兼容
 
-    # Milvus（支持 Lite 模式和 Standalone 模式）
-    MILVUS_URI: str = "./data/milvus.db"  # Lite模式：本地文件；Standalone模式：http://localhost:19530
+    # Milvus（Docker standalone，见 docker/milvus-standalone-compose.yml）
+    MILVUS_HOST: str = "127.0.0.1"
+    MILVUS_PORT: int = 19530
     MILVUS_COLLECTION: str = "military_chunks"
 
     # Elasticsearch
@@ -29,7 +30,7 @@ class Settings(BaseSettings):
     # Neo4j
     NEO4J_URI: str = "bolt://localhost:7687"
     NEO4J_USER: str = "neo4j"
-    NEO4J_PASSWORD: str = "neo4j"
+    NEO4J_PASSWORD: str = "neo4j123456"
 
     # Data directory
     DATA_DIR: str = "./data"

@@ -1,4 +1,4 @@
-"""Step 2 - 索引构建服务（本地向量存储 + Elasticsearch）"""
+"""Step 2 - 索引构建服务（Milvus 向量库 + Elasticsearch）"""
 from typing import List, Optional
 from loguru import logger
 from elasticsearch import AsyncElasticsearch
@@ -12,7 +12,7 @@ from app.services.vector_store import vector_store
 
 
 class IndexBuilder:
-    """构建本地向量索引和 ES BM25 索引"""
+    """构建 Milvus 向量索引和 ES BM25 索引"""
 
     def __init__(self):
         self._es_client: Optional[AsyncElasticsearch] = None
@@ -20,17 +20,16 @@ class IndexBuilder:
     # ──────────────── 向量索引 ────────────────
 
     async def build_vector_index(self, chunks: List[Chunk]) -> None:
-        """构建本地向量索引"""
+        """全量重建 Milvus 集合与向量索引"""
         if not chunks:
             logger.warning("No chunks to index")
+            await vector_store.rebuild([], [], [])
             return
 
-        # 生成向量
         texts = [f"{c.title_chain}\n{c.text}" for c in chunks]
         logger.info(f"Generating embeddings for {len(texts)} chunks...")
         embeddings = await embedding_service.encode(texts)
 
-        # 构建元数据
         chunk_ids = [c.chunk_id for c in chunks]
         metadata_list = [
             {
@@ -43,14 +42,8 @@ class IndexBuilder:
             for c in chunks
         ]
 
-        # 先清空旧数据
-        vector_store.drop()
-
-        # 插入并持久化
-        vector_store.insert(chunk_ids, embeddings, metadata_list)
-        vector_store.save()
-
-        logger.info(f"Vector index built: {len(chunks)} vectors")
+        await vector_store.rebuild(chunk_ids, embeddings, metadata_list)
+        logger.info(f"Vector index built: {len(chunks)} vectors (Milvus)")
 
     # ──────────────── Elasticsearch ────────────────
 

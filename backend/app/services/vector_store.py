@@ -1,145 +1,244 @@
-"""轻量级本地向量存储（替代 Milvus，适用于 Windows / 小规模数据）
-使用 numpy 做余弦相似度检索，数据持久化到 JSON 文件。
-对 ~200 个 chunk 性能完全足够。
-"""
-import json
-import numpy as np
-from typing import List, Dict, Optional
-from pathlib import Path
+"""Milvus 向量存储：建库、全量重建索引、过滤检索（COSINE + HNSW）。"""
+from __future__ import annotations
+
+import asyncio
+import math
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
+from pymilvus import (
+    Collection,
+    CollectionSchema,
+    DataType,
+    FieldSchema,
+    connections,
+    utility,
+)
 
 from app.config import settings
 
+# 与 Chunk / 索引构建侧字段一致（VARCHAR 需声明 max_length）
+_CHUNK_ID_MAX = 256
+_TAG_MAX = 128
+_CHUNK_TYPE_MAX = 32
+_DOC_ID_MAX = 256
 
-class LocalVectorStore:
-    """基于 numpy 的本地向量存储"""
+_INDEX_TYPE = "HNSW"
+_METRIC = "COSINE"
+_HNSW_M = 16
+_HNSW_EF_CONSTRUCTION = 256
+_SEARCH_EF = 64
 
-    def __init__(self):
-        self._vectors: Optional[np.ndarray] = None  # shape: (n, dim)
-        self._metadata: List[Dict] = []  # 每个向量对应的元数据
-        self._store_path = Path(settings.DATA_DIR) / "vector_store.json"
-        self._loaded = False
+_INSERT_BATCH = 512
 
-    def _ensure_loaded(self):
-        """懒加载"""
-        if not self._loaded and self._store_path.exists():
-            self.load()
 
-    def insert(self, chunk_ids: List[str], vectors: List[List[float]], metadata_list: List[Dict]):
-        """插入向量和元数据"""
-        self._vectors = np.array(vectors, dtype=np.float32)
-        self._metadata = []
-        for i, chunk_id in enumerate(chunk_ids):
-            meta = metadata_list[i] if i < len(metadata_list) else {}
-            meta["chunk_id"] = chunk_id
-            self._metadata.append(meta)
-        self._loaded = True
-        logger.info(f"Inserted {len(chunk_ids)} vectors into local store")
+def _milvus_str_literal(value: str) -> str:
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
-    def save(self):
-        """持久化到文件"""
-        self._store_path.parent.mkdir(parents=True, exist_ok=True)
-        data = {
-            "vectors": self._vectors.tolist() if self._vectors is not None else [],
-            "metadata": self._metadata,
-        }
-        with open(self._store_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False)
-        logger.info(f"Vector store saved: {len(self._metadata)} vectors -> {self._store_path}")
 
-    def load(self):
-        """从文件加载"""
-        if not self._store_path.exists():
-            logger.warning(f"Vector store file not found: {self._store_path}")
+def _filter_expr(filters: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not filters:
+        return None
+    parts: List[str] = []
+    if filters.get("phase"):
+        parts.append(f"phase == {_milvus_str_literal(str(filters['phase']))}")
+    if filters.get("battle_type"):
+        parts.append(f"battle_type == {_milvus_str_literal(str(filters['battle_type']))}")
+    if filters.get("scope"):
+        parts.append(f"scope == {_milvus_str_literal(str(filters['scope']))}")
+    if not parts:
+        return None
+    return " and ".join(parts)
+
+
+class MilvusVectorStore:
+    """Milvus 单例：同步 SDK 通过 asyncio.to_thread 挂到事件循环，并用 asyncio.Lock 串行化调用。"""
+
+    def __init__(self) -> None:
+        self._io_lock = asyncio.Lock()
+
+    def _connect_sync(self) -> None:
+        alias = "default"
+        if connections.has_connection(alias):
             return
-        with open(self._store_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        self._vectors = np.array(data["vectors"], dtype=np.float32) if data["vectors"] else None
-        self._metadata = data["metadata"]
-        self._loaded = True
-        logger.info(f"Vector store loaded: {len(self._metadata)} vectors")
+        connections.connect(
+            alias=alias,
+            host=settings.MILVUS_HOST,
+            port=settings.MILVUS_PORT,
+        )
+        logger.info(
+            "Milvus connected: {}:{} collection={}",
+            settings.MILVUS_HOST,
+            settings.MILVUS_PORT,
+            settings.MILVUS_COLLECTION,
+        )
 
-    def search(
+    def _disconnect_sync(self) -> None:
+        alias = "default"
+        if connections.has_connection(alias):
+            connections.disconnect(alias)
+            logger.info("Milvus disconnected")
+
+    def _schema(self) -> CollectionSchema:
+        dim = settings.EMBEDDING_DIM
+        fields = [
+            FieldSchema(
+                name="chunk_id",
+                dtype=DataType.VARCHAR,
+                is_primary=True,
+                auto_id=False,
+                max_length=_CHUNK_ID_MAX,
+            ),
+            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=dim),
+            FieldSchema(name="phase", dtype=DataType.VARCHAR, max_length=_TAG_MAX),
+            FieldSchema(name="battle_type", dtype=DataType.VARCHAR, max_length=_TAG_MAX),
+            FieldSchema(name="scope", dtype=DataType.VARCHAR, max_length=_TAG_MAX),
+            FieldSchema(name="chunk_type", dtype=DataType.VARCHAR, max_length=_CHUNK_TYPE_MAX),
+            FieldSchema(name="document_id", dtype=DataType.VARCHAR, max_length=_DOC_ID_MAX),
+        ]
+        return CollectionSchema(fields=fields, description="Military manual chunks")
+
+    def _sync_rebuild(
+        self,
+        chunk_ids: List[str],
+        vectors: List[List[float]],
+        metadata_list: List[Dict[str, Any]],
+    ) -> None:
+        self._connect_sync()
+        name = settings.MILVUS_COLLECTION
+
+        if utility.has_collection(name):
+            utility.drop_collection(name)
+            logger.info("Milvus collection dropped: {}", name)
+
+        if not chunk_ids:
+            logger.info("Milvus rebuild skipped: no chunks")
+            return
+
+        dim = settings.EMBEDDING_DIM
+        for i, v in enumerate(vectors):
+            if len(v) != dim:
+                raise ValueError(
+                    f"Embedding dim mismatch at row {i}: got {len(v)}, expected {dim}"
+                )
+
+        schema = self._schema()
+        collection = Collection(name=name, schema=schema)
+
+        phases: List[str] = []
+        battle_types: List[str] = []
+        scopes: List[str] = []
+        chunk_types: List[str] = []
+        document_ids: List[str] = []
+        for i, meta in enumerate(metadata_list):
+            phases.append(str(meta.get("phase") or ""))
+            battle_types.append(str(meta.get("battle_type") or ""))
+            scopes.append(str(meta.get("scope") or ""))
+            chunk_types.append(str(meta.get("chunk_type") or ""))
+            document_ids.append(str(meta.get("document_id") or ""))
+
+        total = len(chunk_ids)
+        for start in range(0, total, _INSERT_BATCH):
+            end = min(start + _INSERT_BATCH, total)
+            collection.insert(
+                [
+                    chunk_ids[start:end],
+                    [list(map(float, v)) for v in vectors[start:end]],
+                    phases[start:end],
+                    battle_types[start:end],
+                    scopes[start:end],
+                    chunk_types[start:end],
+                    document_ids[start:end],
+                ]
+            )
+            logger.debug("Milvus insert batch {}-{}", start, end)
+
+        collection.flush()
+        index_params = {
+            "index_type": _INDEX_TYPE,
+            "metric_type": _METRIC,
+            "params": {"M": _HNSW_M, "efConstruction": _HNSW_EF_CONSTRUCTION},
+        }
+        collection.create_index(field_name="embedding", index_params=index_params)
+        collection.load()
+        logger.info("Milvus rebuild done: {} entities", collection.num_entities)
+
+    def _sync_search(
+        self,
+        query_vector: List[float],
+        top_k: int,
+        filters: Optional[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        self._connect_sync()
+        name = settings.MILVUS_COLLECTION
+        if not utility.has_collection(name):
+            return []
+
+        collection = Collection(name)
+        if collection.num_entities == 0:
+            return []
+
+        collection.load()
+        expr = _filter_expr(filters)
+        dim = settings.EMBEDDING_DIM
+        if len(query_vector) != dim:
+            logger.warning("Query vector dim {} != {}", len(query_vector), dim)
+            return []
+
+        q = [list(map(float, query_vector))]
+        search_params = {"metric_type": _METRIC, "params": {"ef": _SEARCH_EF}}
+        limit = max(1, min(top_k, 16384))
+
+        raw = collection.search(
+            data=q,
+            anns_field="embedding",
+            param=search_params,
+            limit=limit,
+            expr=expr,
+            output_fields=["chunk_id"],
+            consistency_level="Strong",
+        )
+
+        out: List[Dict[str, Any]] = []
+        for hits in raw:
+            for hit in hits:
+                # COSINE：distance = 1 - cos_sim，越小越相似
+                cos_sim = 1.0 - float(hit.distance)
+                if not math.isfinite(cos_sim):
+                    cos_sim = 0.0
+                score = max(0.0, min(1.0, cos_sim))
+                cid = hit.id or getattr(hit, "pk", None)
+                if cid is None and getattr(hit, "entity", None):
+                    cid = hit.entity.get("chunk_id")
+                if cid is None:
+                    continue
+                out.append({"chunk_id": str(cid), "score": score})
+        return out
+
+    async def rebuild(
+        self,
+        chunk_ids: List[str],
+        vectors: List[List[float]],
+        metadata_list: List[Dict[str, Any]],
+    ) -> None:
+        async with self._io_lock:
+            await asyncio.to_thread(self._sync_rebuild, chunk_ids, vectors, metadata_list)
+
+    async def search(
         self,
         query_vector: List[float],
         top_k: int = 10,
-        filters: Optional[Dict] = None,
-    ) -> List[Dict]:
-        """
-        余弦相似度检索
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict[str, Any]]:
+        async with self._io_lock:
+            return await asyncio.to_thread(
+                self._sync_search, query_vector, top_k, filters
+            )
 
-        Returns:
-            [{"chunk_id": "xxx", "score": 0.85}, ...]
-        """
-        self._ensure_loaded()
-
-        if self._vectors is None or len(self._metadata) == 0:
-            return []
-
-        query = np.array(query_vector, dtype=np.float32)
-
-        # 先按过滤条件筛选索引
-        valid_indices = self._apply_filters(filters)
-        if not valid_indices:
-            return []
-
-        # 取出有效向量
-        valid_vectors = self._vectors[valid_indices]
-
-        # 余弦相似度 = dot(a, b) / (|a| * |b|)
-        query_norm = np.linalg.norm(query)
-        if query_norm == 0:
-            return []
-
-        vec_norms = np.linalg.norm(valid_vectors, axis=1)
-        # 避免除零
-        vec_norms = np.where(vec_norms == 0, 1e-10, vec_norms)
-
-        similarities = np.dot(valid_vectors, query) / (vec_norms * query_norm)
-
-        # 取 top-k
-        k = min(top_k, len(similarities))
-        top_indices = np.argsort(similarities)[::-1][:k]
-
-        results = []
-        for idx in top_indices:
-            orig_idx = valid_indices[idx]
-            results.append({
-                "chunk_id": self._metadata[orig_idx]["chunk_id"],
-                "score": float(similarities[idx]),
-            })
-
-        return results
-
-    def _apply_filters(self, filters: Optional[Dict]) -> List[int]:
-        """返回满足过滤条件的索引列表"""
-        if not filters:
-            return list(range(len(self._metadata)))
-
-        valid = []
-        for i, meta in enumerate(self._metadata):
-            match = True
-            for key, value in filters.items():
-                if value and meta.get(key) != value:
-                    match = False
-                    break
-            if match:
-                valid.append(i)
-        return valid
-
-    def drop(self):
-        """清空存储"""
-        self._vectors = None
-        self._metadata = []
-        if self._store_path.exists():
-            self._store_path.unlink()
-        logger.info("Vector store dropped")
-
-    @property
-    def count(self) -> int:
-        self._ensure_loaded()
-        return len(self._metadata)
+    async def shutdown(self) -> None:
+        async with self._io_lock:
+            await asyncio.to_thread(self._disconnect_sync)
 
 
-# 全局单例
-vector_store = LocalVectorStore()
+vector_store = MilvusVectorStore()
